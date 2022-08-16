@@ -59,14 +59,12 @@ jobs:
     - version
 
     env:
-      GOSU_UID: ${{ needs.version.outputs.gosuuid }}
-      GOSU_GID: ${{ needs.version.outputs.gosugid }}
       VERSION: ${{ needs.version.outputs.version }}
 
     runs-on: ubuntu-latest
     container:
       image: vyos/vyos-build:current # latest
-      options: --privileged --sysctl net.ipv6.conf.lo.disable_ipv6=0 -e GOSU_UID=${GOSU_UID} -e GOSU_GID=${GOSU_GID}
+      options: --privileged --sysctl net.ipv6.conf.lo.disable_ipv6=0 -e GOSU_UID=${{needs.version.outputs.gosuuid}} -e GOSU_GID=${{needs.version.outputs.gosugid}}
 
     defaults:
       run:
@@ -106,14 +104,12 @@ jobs:
     - version
 
     env:
-      GOSU_UID: ${{ needs.version.outputs.gosuuid }}
-      GOSU_GID: ${{ needs.version.outputs.gosugid }}
       VERSION: ${{ needs.version.outputs.version }}
       
     runs-on: ARM64
     container:
       image: vyos/vyos-build:current-arm64 # latest
-      options: --privileged --sysctl net.ipv6.conf.lo.disable_ipv6=0 -e GOSU_UID=${GOSU_UID} -e GOSU_GID=${GOSU_GID}
+      options: --privileged --sysctl net.ipv6.conf.lo.disable_ipv6=0 -e GOSU_UID=${{needs.version.outputs.gosuuid}} -e GOSU_GID=${{needs.version.outputs.gosugid}}
 
     defaults:
       run:
