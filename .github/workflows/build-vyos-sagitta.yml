@@ -1,0 +1,230 @@
+name: Build VyOS Current Images
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+    - versions/current
+
+jobs:
+
+  version:
+    runs-on: ubuntu-latest
+    outputs: 
+      version: ${{steps.get-version.outputs.version}}
+      gosuuid: ${{steps.get-version.outputs.gosuuid}}
+      gosugid: ${{steps.get-version.outputs.gosugid}}
+
+    defaults:
+      run:
+        shell: bash
+
+    if: github.ref == 'refs/heads/main'
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        ref: main
+
+    - name: Get Version
+      id: get-version
+      run: |
+        VERSION=$(cat versions/current)
+
+        git config user.email "$(git log -1 --pretty=format:'%an')"
+        git config user.name "$(git log -1 --pretty=format:'%ae')"
+        git fetch --tags origin
+
+        set +e
+        check_version_tag=$(git for-each-ref \
+          --sort=-creatordate \
+          --format '%(refname)' refs/tags \
+          | grep "refs/tags/$VERSION" \
+          | head -1)
+        set -e
+
+        if [[ -n $check_version_tag ]]; then
+          echo "Version tag for version $VERSION exists => $check_version_tag"
+          exit 1
+        fi
+
+        echo "::set-output name=version::$VERSION"
+        echo "::set-output name=gosuuid::$(id -u)"
+        echo "::set-output name=gosugid::$(id -g)"
+
+  build-amd:
+    needs:
+    - version
+
+    env:
+      GOSU_UID: ${{ needs.version.outputs.gosuuid }}
+      GOSU_GID: ${{ needs.version.outputs.gosugid }}
+      VERSION: ${{ needs.version.outputs.version }}
+
+    runs-on: ubuntu-latest
+    container:
+      image: vyos/vyos-build:current # latest
+      options: --privileged --sysctl net.ipv6.conf.lo.disable_ipv6=0 -e GOSU_UID=${GOSU_UID} -e GOSU_GID=${GOSU_GID}
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        ref: appbricks/current
+
+    - name: Build ISO
+      run: |
+        ./configure \
+          --architecture amd64 \
+          --build-by "appbricks.io" \
+          --build-type release \
+          --version ${VERSION}
+        sudo make iso
+
+    - name: Show Build Artifacts
+      run: |
+        pwd
+        ls -altr .
+        ls -altr build
+
+    - name: Upload ISO image
+      uses: actions/upload-artifact@master
+      with:
+        name: build-amd-output
+        path: |
+          build/vyos-*-amd64.iso
+
+  build-arm:
+    needs:
+    - version
+
+    env:
+      GOSU_UID: ${{ needs.version.outputs.gosuuid }}
+      GOSU_GID: ${{ needs.version.outputs.gosugid }}
+      VERSION: ${{ needs.version.outputs.version }}
+      
+    runs-on: ARM64
+    container:
+      image: vyos/vyos-build:current-arm64 # latest
+      options: --privileged --sysctl net.ipv6.conf.lo.disable_ipv6=0 -e GOSU_UID=${GOSU_UID} -e GOSU_GID=${GOSU_GID}
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        ref: appbricks/current
+
+    - name: Build ISO
+      run: |
+        VYOS_BUILD_FLAVOR=data/generic-arm64.json \
+          ./configure \
+            --architecture arm64 \
+            --build-by "appbricks.io" \
+            --build-type release \
+            --version ${VERSION}
+        sudo make iso
+
+    - name: Show Build Artifacts
+      run: |
+        pwd
+        ls -altr .
+        ls -altr build
+
+    - name: Upload ISO image
+      uses: actions/upload-artifact@master
+      with:
+        name: build-arm-output
+        path: |
+          build/vyos-*-arm64.iso
+
+  release:
+    needs:
+    - build-amd
+    - build-arm
+
+    # Setup default environment for aws sdk
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: us-east-1
+      RELEASE_TAG: ${{ needs.version.outputs.version }}
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+
+    - name: Download AMD ISO image
+      uses: actions/download-artifact@master
+      with:
+        name: build-amd-output
+        path: .
+
+    - name: Download ARM ISO image
+      uses: actions/download-artifact@master
+      with:
+        name: build-arm-output
+        path: .
+
+    - name: Upload release files
+      run: |
+        cat << ---EOF >> ./release-notes.md
+        ## Release Notes
+
+        VYOS 1.4 Release (Sagitta)
+        Pre-Release build.
+
+        ISO Download Links:
+        ---EOF
+
+        for f in ./*.iso; do
+          aws s3 cp $f s3://appbricks-public-downloads/vyos/$(basename $f)
+          PAGER= aws s3api put-object-acl --acl public-read --bucket appbricks-public-downloads --key vyos/$(basename $f)
+
+          download_url=https://appbricks-public-downloads.s3.amazonaws.com/vyos/$(basename $f)
+          if [[ $f == *arm* ]]; then
+            echo "* [ARM64]($download_url)"
+          elif [[ $f == *amd* ]]; then
+            echo "* [AMD64]($download_url)"
+          else
+            echo "* $f"
+          fi
+        done
+
+    - name: Create release tag
+      id: release_tag
+      run: |
+        git config user.email "$(git log -1 --pretty=format:'%an')"
+        git config user.name "$(git log -1 --pretty=format:'%ae')"
+        git fetch --tags origin
+
+        echo "Creating release tag ${RELEASE_TAG}..."
+        git tag -a ${RELEASE_TAG} -m "vyos 1.4 build on $(date '+%B %d %Y %H:%M %Z')"
+        git push --follow-tags
+
+    - name: Publish release
+      uses: actions/create-release@v1
+      id: create_release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${RELEASE_TAG}
+        release_name: AppBricks VYOS 1.4 Sagitta Pre-release
+        body_path: ./release-notes.md
+        draft: true
+        prerelease: false
