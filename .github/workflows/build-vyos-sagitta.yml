@@ -82,9 +82,7 @@ jobs:
           --build-by "appbricks.io" \
           --build-type release \
           --version ${VERSION}
-        #sudo make iso
-        mkdir -p build
-        echo "test image" > build/vyos-${VERSION}-amd64.iso
+        sudo make iso
 
     - name: Show Build Artifacts
       run: |
