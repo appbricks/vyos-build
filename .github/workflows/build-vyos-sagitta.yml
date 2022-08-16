@@ -184,7 +184,7 @@ jobs:
         cat << ---EOF >> ./release-notes.md
         ## Release Notes
 
-        VYOS 1.4 Release (Sagitta)
+        VyOS 1.4 Release (Sagitta)
         Pre-Release build.
 
         ISO Download Links:
@@ -220,8 +220,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${RELEASE_TAG}
-        release_name: AppBricks VYOS 1.4 Sagitta Pre-release
+        tag_name: ${{ needs.version.outputs.version }}
+        release_name: VyOS ${{ needs.version.outputs.version }} (Sagitta)
         body_path: ./release-notes.md
         draft: false
         prerelease: false
