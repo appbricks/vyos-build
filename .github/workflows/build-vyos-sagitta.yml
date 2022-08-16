@@ -185,6 +185,11 @@ jobs:
         ## Release Notes
 
         VyOS 1.4 Release (Sagitta)
+
+        > This self-built image is not an official VyOS image.
+        > Please use it at your own risk.  Official builds may be 
+        > downloaded from the [VyOS download portal](https://vyos.net/get/?dir=rolling/).
+
         Pre-Release build.
 
         ISO Download Links:
