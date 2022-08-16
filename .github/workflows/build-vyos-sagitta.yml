@@ -106,7 +106,7 @@ jobs:
           build/vyos-*-amd64.iso
 
   build-arm:
-    if: ${{ inputs.skip_arm_biuld }}
+    if: ${{ !inputs.skip_arm_biuld }}
     needs:
     - version
 
@@ -179,7 +179,7 @@ jobs:
         path: .
 
     - name: Download ARM ISO image
-      if: ${{ inputs.skip_arm_biuld }}
+      if: ${{ !inputs.skip_arm_biuld }}
       uses: actions/download-artifact@master
       with:
         name: build-arm-output
