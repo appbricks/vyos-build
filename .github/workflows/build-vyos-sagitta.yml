@@ -84,7 +84,7 @@ jobs:
           --version ${VERSION}
         #sudo make iso
         mkdir -p build
-        echo "test image" > build/vyos-1.4.${VERSION}-amd64.iso
+        echo "test image" > build/vyos-${VERSION}-amd64.iso
 
     - name: Show Build Artifacts
       run: |
@@ -147,6 +147,7 @@ jobs:
 
   release:
     needs:
+    - version
     - build-amd
     # - build-arm
 
@@ -164,7 +165,7 @@ jobs:
         shell: bash
 
     steps:
-    
+
     - name: Checkout
       uses: actions/checkout@v3
 
@@ -206,7 +207,6 @@ jobs:
         done
 
     - name: Create release tag
-      id: release_tag
       run: |
         git config user.email "$(git log -1 --pretty=format:'%an')"
         git config user.name "$(git log -1 --pretty=format:'%ae')"
