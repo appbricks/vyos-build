@@ -2,12 +2,6 @@ name: Build VyOS Current Images
 
 on:
   workflow_dispatch:
-    inputs:
-      skip_arm_biuld:
-        description: Skip ARM build
-        required: true
-        default: false
-        type: boolean        
   push:
     branches: [ main ]
     paths:
@@ -106,7 +100,6 @@ jobs:
           build/vyos-*-amd64.iso
 
   build-arm:
-    if: ${{ !inputs.skip_arm_biuld }}
     needs:
     - version
 
@@ -179,7 +172,6 @@ jobs:
         path: .
 
     - name: Download ARM ISO image
-      if: ${{ !inputs.skip_arm_biuld }}
       uses: actions/download-artifact@master
       with:
         name: build-arm-output
