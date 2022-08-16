@@ -99,56 +99,56 @@ jobs:
         path: |
           build/vyos-*-amd64.iso
 
-  build-arm:
-    needs:
-    - version
+  # build-arm:
+  #   needs:
+  #   - version
 
-    env:
-      VERSION: ${{ needs.version.outputs.version }}
+  #   env:
+  #     VERSION: ${{ needs.version.outputs.version }}
       
-    runs-on: ARM64
-    container:
-      image: vyos/vyos-build:current-arm64 # latest
-      options: --privileged --sysctl net.ipv6.conf.lo.disable_ipv6=0 -e GOSU_UID=${{needs.version.outputs.gosuuid}} -e GOSU_GID=${{needs.version.outputs.gosugid}}
+  #   runs-on: ARM64
+  #   container:
+  #     image: vyos/vyos-build:current-arm64 # latest
+  #     options: --privileged --sysctl net.ipv6.conf.lo.disable_ipv6=0 -e GOSU_UID=${{needs.version.outputs.gosuuid}} -e GOSU_GID=${{needs.version.outputs.gosugid}}
 
-    defaults:
-      run:
-        shell: bash
+  #   defaults:
+  #     run:
+  #       shell: bash
 
-    steps:
+  #   steps:
 
-    - name: Checkout
-      uses: actions/checkout@v3
-      with:
-        ref: appbricks/current
+  #   - name: Checkout
+  #     uses: actions/checkout@v3
+  #     with:
+  #       ref: appbricks/current
 
-    - name: Build ISO
-      run: |
-        VYOS_BUILD_FLAVOR=data/generic-arm64.json \
-          ./configure \
-            --architecture arm64 \
-            --build-by "appbricks.io" \
-            --build-type release \
-            --version ${VERSION}
-        sudo make iso
+  #   - name: Build ISO
+  #     run: |
+  #       VYOS_BUILD_FLAVOR=data/generic-arm64.json \
+  #         ./configure \
+  #           --architecture arm64 \
+  #           --build-by "appbricks.io" \
+  #           --build-type release \
+  #           --version ${VERSION}
+  #       sudo make iso
 
-    - name: Show Build Artifacts
-      run: |
-        pwd
-        ls -altr .
-        ls -altr build
+  #   - name: Show Build Artifacts
+  #     run: |
+  #       pwd
+  #       ls -altr .
+  #       ls -altr build
 
-    - name: Upload ISO image
-      uses: actions/upload-artifact@master
-      with:
-        name: build-arm-output
-        path: |
-          build/vyos-*-arm64.iso
+  #   - name: Upload ISO image
+  #     uses: actions/upload-artifact@master
+  #     with:
+  #       name: build-arm-output
+  #       path: |
+  #         build/vyos-*-arm64.iso
 
   release:
     needs:
     - build-amd
-    - build-arm
+    # - build-arm
 
     # Setup default environment for aws sdk
     env:
@@ -171,11 +171,11 @@ jobs:
         name: build-amd-output
         path: .
 
-    - name: Download ARM ISO image
-      uses: actions/download-artifact@master
-      with:
-        name: build-arm-output
-        path: .
+    # - name: Download ARM ISO image
+    #   uses: actions/download-artifact@master
+    #   with:
+    #     name: build-arm-output
+    #     path: .
 
     - name: Upload release files
       run: |
