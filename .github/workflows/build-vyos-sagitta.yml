@@ -222,16 +222,16 @@ jobs:
           PAGER= aws s3api put-object-acl --acl public-read --bucket appbricks-public-downloads --key vyos/$(basename $f)
 
           download_url=https://appbricks-public-downloads.s3.amazonaws.com/vyos/$(basename $f)
-          if [[ $f == vyos-*-arm64.iso ]]; then
-            echo "* [ARM64]($download_url)" >> ./release-notes.md
-          elif [[ $f == vyos-*-amd64.iso ]]; then
-            echo "* [AMD64]($download_url)" >> ./release-notes.md
-          elif [[ $f == vyos-AWS-*-arm64.iso ]]; then
+          if [[ $f =~ vyos-AWS-.*-arm64.iso ]]; then
             echo "* [ARM64]($download_url) - AWS EC2 compatible" >> ./release-notes.md
-          elif [[ $f == vyos-AWS-*-amd64.iso ]]; then
+          elif [[ $f =~ vyos-AWS-.*-amd64.iso ]]; then
             echo "* [AMD64]($download_url) - AWS EC2 compatible" >> ./release-notes.md
+          elif [[ $f =~ vyos-.*-arm64.iso ]]; then
+            echo "* [ARM64]($download_url)" >> ./release-notes.md
+          elif [[ $f =~ vyos-.*-amd64.iso ]]; then
+            echo "* [AMD64]($download_url)" >> ./release-notes.md
           else
-            echo "* $f"
+            echo "* $download_url" >> ./release-notes.md
           fi
         done
 
