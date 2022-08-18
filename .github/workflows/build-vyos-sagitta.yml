@@ -90,6 +90,13 @@ jobs:
 
     - name: Show Build Artifacts
       run: |
+        if [[ ${{ matrix.target }} != iso ]]; then
+          iso_name=$(ls build/vyos-*.iso)
+          prefix=${iso_name%%-*}
+          suffix=${iso_name#*-}
+          mv build/vyos-*.iso $prefix-${{ matrix.target }}-$suffix
+        fi
+
         pwd
         ls -altr .
         ls -altr build
@@ -140,6 +147,13 @@ jobs:
 
     - name: Show Build Artifacts
       run: |
+        if [[ ${{ matrix.target }} != iso ]]; then
+          iso_name=$(ls build/vyos-*.iso)
+          prefix=${iso_name%%-*}
+          suffix=${iso_name#*-}
+          mv build/vyos-*.iso $prefix-${{ matrix.target }}-$suffix
+        fi
+
         pwd
         ls -altr .
         ls -altr build
@@ -188,10 +202,7 @@ jobs:
         path: .
 
     - name: Upload release files
-      run: |
-        ls -al
-        exit 1
-        
+      run: |        
         cat << ---EOF >> ./release-notes.md
         ## Release Notes
 
@@ -211,14 +222,24 @@ jobs:
           PAGER= aws s3api put-object-acl --acl public-read --bucket appbricks-public-downloads --key vyos/$(basename $f)
 
           download_url=https://appbricks-public-downloads.s3.amazonaws.com/vyos/$(basename $f)
-          if [[ $f == *-arm64.iso ]]; then
+          if [[ $f == vyos-*-arm64.iso ]]; then
             echo "* [ARM64]($download_url)" >> ./release-notes.md
-          elif [[ $f == *-amd64.iso ]]; then
+          elif [[ $f == vyos-*-amd64.iso ]]; then
             echo "* [AMD64]($download_url)" >> ./release-notes.md
+          elif [[ $f == vyos-aws-*-arm64.iso ]]; then
+            echo "* [ARM64]($download_url) - AWS EC2 compatible" >> ./release-notes.md
+          elif [[ $f == vyos-aws-*-amd64.iso ]]; then
+            echo "* [AMD64]($download_url) - AWS EC2 compatible" >> ./release-notes.md
           else
             echo "* $f"
           fi
         done
+
+        ls -al
+        echo
+        cat ./release-notes.md
+        echo
+        exit 1
 
     - name: Create release tag
       run: |
