@@ -56,6 +56,10 @@ jobs:
     needs:
     - version
 
+    strategy:
+      matrix:
+        target: [ 'iso', 'AWS' ]
+
     env:
       VERSION: ${{ needs.version.outputs.version }}
 
@@ -82,7 +86,7 @@ jobs:
           --build-by "appbricks.io" \
           --build-type release \
           --version ${VERSION}
-        sudo make iso
+        sudo make ${{ matrix.target }}
 
     - name: Show Build Artifacts
       run: |
@@ -100,6 +104,10 @@ jobs:
   build-arm:
     needs:
     - version
+
+    strategy:
+      matrix:
+        target: [ 'iso', 'AWS' ]
 
     env:
       VERSION: ${{ needs.version.outputs.version }}
@@ -128,7 +136,7 @@ jobs:
             --build-by "appbricks.io" \
             --build-type release \
             --version ${VERSION}
-        sudo make iso
+        sudo make ${{ matrix.target }}
 
     - name: Show Build Artifacts
       run: |
@@ -181,6 +189,9 @@ jobs:
 
     - name: Upload release files
       run: |
+        ls -al
+        exit 1
+        
         cat << ---EOF >> ./release-notes.md
         ## Release Notes
 
