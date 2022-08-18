@@ -235,12 +235,6 @@ jobs:
           fi
         done
 
-        ls -al
-        echo
-        cat ./release-notes.md
-        echo
-        exit 1
-
     - name: Create release tag
       run: |
         git config user.email "$(git log -1 --pretty=format:'%an')"
