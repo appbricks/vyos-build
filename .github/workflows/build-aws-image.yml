@@ -58,4 +58,4 @@ jobs:
           base_image.name='debian-buster-arm64-hvm-*' \
           base_image.architecture='arm64' \
           ami_name='appbricks-vyos-${VERSION}-arm64' \
-          ami_architecture='arm64'"
+          ami_architecture='arm64'
