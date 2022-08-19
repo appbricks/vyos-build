@@ -24,24 +24,6 @@ jobs:
       id: get-version
       run: |
         VERSION=$(cat versions/sagitta)
-
-        git config user.email "$(git log -1 --pretty=format:'%an')"
-        git config user.name "$(git log -1 --pretty=format:'%ae')"
-        git fetch --tags origin
-
-        set +e
-        check_version_tag=$(git for-each-ref \
-          --sort=-creatordate \
-          --format '%(refname)' refs/tags \
-          | grep "refs/tags/$VERSION" \
-          | head -1)
-        set -e
-
-        if [[ -n $check_version_tag ]]; then
-          echo "Version tag for version $VERSION exists => $check_version_tag"
-          exit 1
-        fi
-
         echo "::set-output name=version::$VERSION"
 
   build-ami:
