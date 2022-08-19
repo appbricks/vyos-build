@@ -52,4 +52,5 @@ jobs:
 
     - name: Build AMI
       run: |
+        pip install ansible
         ./vyos-build-ami https://appbricks-public-downloads.s3.amazonaws.com/vyos/vyos-AWS-${VERSION}-amd64.iso
