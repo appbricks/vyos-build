@@ -53,4 +53,9 @@ jobs:
     - name: Build ARM AMI
       run: |
         ./vyos-build-ami \
-          "iso=https://appbricks-public-downloads.s3.amazonaws.com/vyos/vyos-AWS-${VERSION}-arm64.iso instance_type=t4g.micro base_image.name=debian-buster-arm64-hvm-* base_image.architecture=arm64 ami_name=appbricks-vyos-${VERSION}-arm64 ami_architecture=arm64"
+          iso="https://appbricks-public-downloads.s3.amazonaws.com/vyos/vyos-AWS-${VERSION}-arm64.iso" \
+          instance_type="t4g.micro" \
+          base_image.name="debian-buster-arm64-hvm-*" \
+          base_image.architecture="arm64" \
+          ami_name="appbricks-vyos-${VERSION}-arm64" \
+          ami_architecture="arm64"
