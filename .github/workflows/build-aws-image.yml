@@ -57,8 +57,11 @@ jobs:
             "iso": "https://appbricks-public-downloads.s3.amazonaws.com/vyos/vyos-AWS-${VERSION}-arm64.iso",
             "instance_type": "t4g.micro",
             "base_image": {
+              "debian_aws_account_id": "379101102735",
               "name": "debian-buster-arm64-hvm-*",
-              "architecture": "arm64"
+              "architecture": "arm64",
+              "hypervisor": "xen",
+              "root_device_type": "ebs"
             },
             "ami_name": "appbricks-vyos-${VERSION}-arm64",
             "ami_architecture": "arm64"
