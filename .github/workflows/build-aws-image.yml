@@ -50,6 +50,13 @@ jobs:
         repository: appbricks/vyos-build-ami
         ref: appbricks/dev
 
-    - name: Build AMI
+    - name: Build ARM AMI
       run: |
-        ./vyos-build-ami https://appbricks-public-downloads.s3.amazonaws.com/vyos/vyos-AWS-${VERSION}-amd64.iso
+        ./vyos-build-ami \
+          https://appbricks-public-downloads.s3.amazonaws.com/vyos/vyos-AWS-${VERSION}-arm64.iso \
+          -e instance_type=t4g.micro \
+          -e base_image.name=debian-buster-arm64-hvm-* \
+          -e base_image.architecture=arm64 \
+          -e ami_name=appbricks-vyos-${VERSION}-arm64 \
+          -e ami_architecture=arm64
+
