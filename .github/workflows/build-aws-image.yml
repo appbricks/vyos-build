@@ -1,0 +1,73 @@
+name: Build AWS Image
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  version:
+    runs-on: ubuntu-latest
+    outputs: 
+      version: ${{steps.get-version.outputs.version}}
+
+    defaults:
+      run:
+        shell: bash
+
+    if: github.ref == 'refs/heads/main'
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Get Version
+      id: get-version
+      run: |
+        VERSION=$(cat versions/sagitta)
+
+        git config user.email "$(git log -1 --pretty=format:'%an')"
+        git config user.name "$(git log -1 --pretty=format:'%ae')"
+        git fetch --tags origin
+
+        set +e
+        check_version_tag=$(git for-each-ref \
+          --sort=-creatordate \
+          --format '%(refname)' refs/tags \
+          | grep "refs/tags/$VERSION" \
+          | head -1)
+        set -e
+
+        if [[ -n $check_version_tag ]]; then
+          echo "Version tag for version $VERSION exists => $check_version_tag"
+          exit 1
+        fi
+
+        echo "::set-output name=version::$VERSION"
+
+  build-ami:
+    needs:
+    - version
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: us-east-1
+      VERSION: ${{ needs.version.outputs.version }}
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        repository: vyos/build-ami
+        ref: master
+
+    - name: Build AMI
+      run: |
+        ./vyos-build-ami https://appbricks-public-downloads.s3.amazonaws.com/vyos/vyos-AWS-${VERSION}-amd64.iso
