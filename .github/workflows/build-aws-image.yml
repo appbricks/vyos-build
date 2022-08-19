@@ -47,11 +47,9 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
       with:
-        repository: vyos/build-ami
-        ref: master
+        repository: appbricks/vyos-build-ami
+        ref: appbricks/dev
 
     - name: Build AMI
       run: |
-        pip install ansible
-        ansible-galaxy collection list
         ./vyos-build-ami https://appbricks-public-downloads.s3.amazonaws.com/vyos/vyos-AWS-${VERSION}-amd64.iso
