@@ -19,14 +19,12 @@
 // @Library annotation is not an import statement!
 @Library('vyos-build@current')_
 
-// NOTE: we can build with -d as the libbpf dependency is installed manually
-// and not via a DEB package
 def pkgList = [
-    ['name': 'keepalived',
-     'scmCommit': 'v2.2.7',
-     'scmUrl': 'https://github.com/acassen/keepalived',
+    ['name': 'podman',
+     'scmCommit': 'v4.2.0',
+     'scmUrl': 'https://github.com/containers/podman',
      'buildCmd': 'cd ..; ./build.sh'],
 ]
 
 // Start package build using library function from https://github.com/vyos/vyos-build
-buildPackage('keepalived', pkgList, null, true, "**/packages/keepalived/*")
+buildPackage('podman', pkgList, null, true, "**/packages/podman/*")
