@@ -5,13 +5,13 @@
   "debian_distribution": "bullseye",
   "vyos_mirror": "http://dev.packages.vyos.net/repositories/current",
   "vyos_branch": "current",
-  "kernel_version": "5.10.137",
+  "kernel_version": "5.10.139",
   "kernel_flavor": "amd64-vyos",
   "release_train": "sagitta",
   "bootloaders": "syslinux,grub-efi",
   "additional_repositories": [
     "deb [arch=amd64] https://repo.saltproject.io/py3/debian/11/amd64/3004 bullseye main",
-    "deb [arch=amd64] http://repo.powerdns.com/debian bullseye-rec-45 main"
+    "deb [arch=amd64] http://repo.powerdns.com/debian bullseye-rec-47 main"
   ],
   "custom_packages": []
 }
